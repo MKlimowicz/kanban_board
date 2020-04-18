@@ -4,6 +4,7 @@ package com.example.kanban.services.person;
 import com.example.kanban.dao.person.PersonDao;
 import com.example.kanban.dto.NoteDto;
 import com.example.kanban.dto.PersonDto;
+import com.example.kanban.dto.PersonForProjectDto;
 import com.example.kanban.dto.ProjectDto;
 import com.example.kanban.exception.person.NotFoundPersonException;
 import com.example.kanban.mapper.NoteMapper;
@@ -44,11 +45,68 @@ public class PersonServiceImpl implements PersonService{
 
     @Override
     public PersonDto updatePerson(PersonDto personDto) {
-        Optional<Person> personById = personDao.findById(personDto.getId());
-        personById.orElseThrow(() -> {
-            throw new NotFoundPersonException("Not found person by id: " + personDto.getId());
-        });
+        getPerson(personDto.getId());
         return mapAndUpdate(personDto);
+    }
+
+    @Override
+    public PersonDto savePerson(PersonDto personDto) {
+        return mapAndSave(personDto);
+    }
+
+    @Override
+    public PersonDto deletePerson(Integer personId) {
+        Person person = getPerson(personId);
+        personDao.remove(person);
+        return personMapper.toDto(person);
+    }
+
+    @Override
+    public List<NoteDto> getListNoteFromPerson(Integer personId) {
+        Person person = getPerson(personId);
+
+        return person.getNotes()
+                .stream()
+                .map(NoteMapper::toDto)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<NoteDto> getListNoteFromPersonForProject(PersonForProjectDto personForProjectDto) {
+        Integer personId = personForProjectDto.getPersonId();
+        Integer projectId = personForProjectDto.getProjectId();
+
+        return  getPerson(personId)
+                .getNotes()
+                .stream()
+                .filter(note -> note.getProject().getId().equals(projectId))
+                .map(NoteMapper::toDto)
+                .collect(Collectors.toList());
+
+    }
+
+
+    @Override
+    public PersonDto getPersonById(Integer personId) {
+       return personMapper.toDto(getPerson(personId));
+    }
+
+
+    @Override
+    public List<ProjectDto> getPersonProjectList(Integer personId) {
+        return getPerson(personId)
+                .getProjects()
+                .stream()
+                .map(projectMapper::toDto)
+                .collect(Collectors.toList());
+    }
+
+    private Person getPerson(Integer personId) {
+        Optional<Person> personById = personDao.findById(personId);
+        personById.orElseThrow(() -> {
+            throw new NotFoundPersonException("Not found person by id: " + personId);
+        });
+        return personById.get();
     }
 
     private PersonDto mapAndSave(PersonDto personDto) {
@@ -63,59 +121,4 @@ public class PersonServiceImpl implements PersonService{
         return personMapper.toDto(savedPerson);
     }
 
-    @Override
-    public PersonDto savePerson(PersonDto personDto) {
-        return mapAndSave(personDto);
-    }
-
-    @Override
-    public PersonDto deletePerson(Integer personId) {
-        Optional<Person> personById = personDao.findById(personId);
-        Person person = personById.orElseThrow(() -> {
-            throw new NotFoundPersonException("Not found person by id: " + personId);
-        });
-
-
-        personDao.remove(person);
-
-        return personMapper.toDto(person);
-    }
-
-    @Override
-    public List<NoteDto> getListNoteForPerson(Integer personId) {
-        Optional<Person> personById = personDao.findById(personId);
-        Person person = personById.orElseThrow(() -> {
-            throw new NotFoundPersonException("Not found person by id: " + personId);
-        });
-
-        return person.getNotes()
-                .stream()
-                .map(NoteMapper::toDto)
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public PersonDto getPersonById(Integer personId) {
-        Optional<Person> personById = personDao.findById(personId);
-        personById.orElseThrow(() -> {
-            throw new NotFoundPersonException("Not found person by id: " + personId);
-        });
-
-        return personById
-                .map(personMapper::toDto)
-                .get();
-    }
-
-    @Override
-    public List<ProjectDto> getPersonProjectList(Integer personId) {
-        return personDao
-                .findById(personId)
-                .orElseThrow(() -> {
-                    throw new NotFoundPersonException("Not found person by id: " + personId);
-                })
-                .getProjects()
-                .stream()
-                .map(projectMapper::toDto)
-                .collect(Collectors.toList());
-    }
 }

@@ -3,8 +3,8 @@ package com.example.kanban.restController;
 
 import com.example.kanban.dto.NoteDto;
 import com.example.kanban.dto.PersonDto;
+import com.example.kanban.dto.PersonForProjectDto;
 import com.example.kanban.dto.ProjectDto;
-import com.example.kanban.model.Person;
 import com.example.kanban.services.person.PersonService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -36,9 +36,7 @@ public class PersonRestController {
 
     @PostMapping()
     public ResponseEntity<PersonDto> createPerson(@RequestBody PersonDto personDto) {
-        if(personDto.getId() != null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Id the person to create cannot bo set");
-        }
+        checkID(personDto.getId(), "Id the person to create cannot bo set");
         PersonDto savedPersonDto = personService.savePerson(personDto);
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest()
@@ -46,15 +44,13 @@ public class PersonRestController {
                 .buildAndExpand(savedPersonDto.getId())
                 .toUri();
 
-        return  ResponseEntity.created(location).body(savedPersonDto);
+        return ResponseEntity.created(location).body(savedPersonDto);
     }
 
 
     @PutMapping()
     public ResponseEntity<PersonDto> updatePerson(@RequestBody PersonDto personDto) {
-        if(personDto.getId() == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Person to update, must have set id");
-        }
+        checkID(personDto.getId(), "Person to update, must have set id");
         PersonDto updatedPerson = personService.updatePerson(personDto);
         return ResponseEntity.ok(updatedPerson);
     }
@@ -62,9 +58,7 @@ public class PersonRestController {
 
     @DeleteMapping("/{personId}")
     public ResponseEntity<PersonDto> deletePerson(@PathVariable Integer personId) {
-        if(personId == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Must give personId to delete.");
-        }
+        checkID(personId, "Must give personId to delete.");
         PersonDto deletedPerson = personService.deletePerson(personId);
         return ResponseEntity.ok(deletedPerson);
     }
@@ -72,21 +66,14 @@ public class PersonRestController {
 
     @GetMapping("/notes/{personId}")
     public List<NoteDto> getNotesForPerson(@PathVariable Integer personId) {
-        if(personId == null) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
-                    "You will give personId, if you want get response with notes for this person"
-            );
-        }
-        return personService.getListNoteForPerson(personId);
+        checkID(personId, "You will give personId, if you want get response with notes for this person");
+        return personService.getListNoteFromPerson(personId);
     }
 
 
     @GetMapping("/{personId}")
     public ResponseEntity<PersonDto> getPersonById(@PathVariable Integer personId) {
-        if(personId == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Must give personId.");
-        }
+        checkID(personId, "Must give personId.");
         PersonDto personDto = personService.getPersonById(personId);
         return ResponseEntity.ok(personDto);
     }
@@ -94,10 +81,27 @@ public class PersonRestController {
 
     @GetMapping("/projects/{personId}")
     public List<ProjectDto> getPersonProjectListById(@PathVariable Integer personId) {
-        if(personId == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Must give personId.");
-        }
+        checkID(personId, "Must give personId.");
         return personService.getPersonProjectList(personId);
+    }
+
+
+    @GetMapping("/projects/notes")
+    public List<NoteDto> getNoteFromPersonForProject(@RequestBody PersonForProjectDto personForProjectDto) {
+        Integer personId = personForProjectDto.getPersonId();
+        Integer projectId = personForProjectDto.getProjectId();
+
+        checkID(personId, "Must give personId.");
+        checkID(projectId, "Must give projectId.");
+
+        return personService.getListNoteFromPersonForProject(personForProjectDto);
+    }
+
+
+    private void checkID(Integer personId, String message) {
+        if (personId == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, message);
+        }
     }
 
 }
