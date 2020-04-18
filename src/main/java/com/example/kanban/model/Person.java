@@ -15,9 +15,9 @@ public class Person {
     private Integer id;
     private String name;
     private String lastName;
-    @OneToMany(mappedBy = "person")
+    @OneToMany(mappedBy = "person",  cascade = { CascadeType.MERGE , CascadeType.PERSIST  })
     private List<Note> notes;
-    @ManyToMany(mappedBy = "persons")
+    @ManyToMany(mappedBy = "persons", cascade = { CascadeType.MERGE , CascadeType.PERSIST  })
     List<Project> projects;
 
 

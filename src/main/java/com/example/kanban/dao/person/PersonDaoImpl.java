@@ -1,11 +1,12 @@
 package com.example.kanban.dao.person;
 
+import com.example.kanban.model.Note;
 import com.example.kanban.model.Person;
+import com.example.kanban.model.Project;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.EntityManager;
-import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import javax.transaction.Transactional;
 import java.util.List;
@@ -45,7 +46,18 @@ public class PersonDaoImpl implements PersonDao {
 
     @Override
     public void remove(Person person) {
-       entityManager.remove(person);
+        List<Note> notes = person.getNotes();
+        List<Project> projects = person.getProjects();
+
+        if (!notes.isEmpty()) {
+            notes.forEach(note -> note.setPerson(null));
+        }
+
+        if (!projects.isEmpty()) {
+            projects.forEach(project -> project.getPersons().remove(person));
+        }
+
+        entityManager.remove(person);
     }
 
     @Override

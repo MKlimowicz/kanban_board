@@ -2,6 +2,7 @@ package com.example.kanban.restController;
 
 
 import com.example.kanban.dto.NoteDto;
+import com.example.kanban.dto.PersonForNoteDto;
 import com.example.kanban.services.note.NoteService;
 import com.mysql.cj.fabric.Response;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -74,5 +75,18 @@ public class NoteRestController {
         }
         NoteDto updatedNote = noteService.updateNote(dto);
         return ResponseEntity.ok(updatedNote);
+    }
+
+
+    @PutMapping("/addPerson")
+    public ResponseEntity<NoteDto> addOwnerPerson(@RequestBody PersonForNoteDto personForNoteDto){
+        Integer noteId = personForNoteDto.getNoteId();
+        Integer personId = personForNoteDto.getPersonId();
+        if(noteId == null || personId == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You must give id for both");
+        }
+
+        NoteDto noteDto = noteService.addOwnerPerson(personForNoteDto);
+        return ResponseEntity.ok(noteDto);
     }
 }

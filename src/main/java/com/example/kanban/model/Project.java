@@ -15,7 +15,7 @@ public class Project {
     private Integer id;
     private String name;
 
-    @ManyToMany()
+    @ManyToMany(cascade = { CascadeType.MERGE , CascadeType.PERSIST  })
     @JoinTable(name = "person_project",
             joinColumns = {@JoinColumn(name="projectId", referencedColumnName="projectId")},
             inverseJoinColumns = {@JoinColumn(name="personId", referencedColumnName="personId")}
@@ -23,7 +23,7 @@ public class Project {
     private List<Person> persons;
 
     @OneToMany(mappedBy = "project",
-            cascade = {  CascadeType.REMOVE },
+            cascade = { CascadeType.MERGE , CascadeType.PERSIST  },
             orphanRemoval = true)
 
     private List<Note> notes;

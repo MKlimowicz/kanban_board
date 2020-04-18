@@ -1,6 +1,8 @@
 package com.example.kanban.dao.project;
 
 
+import com.example.kanban.model.Note;
+import com.example.kanban.model.Person;
 import com.example.kanban.model.Project;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -46,8 +48,13 @@ public class ProjectDaoImpl implements ProjectDao {
 
     @Override
     public void remove(Project project) {
-        em.remove(project);
+        List<Person> persons = project.getPersons();
 
+        if(!persons.isEmpty()) {
+            persons.forEach(person -> person.getProjects().remove(project));
+        }
+
+        em.remove(project);
     }
 
     @Override
