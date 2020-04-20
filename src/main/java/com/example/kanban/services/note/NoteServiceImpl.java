@@ -7,7 +7,7 @@ import com.example.kanban.dao.person.PersonDao;
 import com.example.kanban.dao.project.ProjectDao;
 import com.example.kanban.dto.NoteDto;
 import com.example.kanban.dto.PersonForNoteDto;
-import com.example.kanban.exception.ProjectNotExistsException;
+import com.example.kanban.exception.project.ProjectNotExistsException;
 import com.example.kanban.exception.note.EmptyNoteException;
 import com.example.kanban.exception.category.NotFoundCategoryException;
 import com.example.kanban.exception.note.NotFoundNoteException;
@@ -62,8 +62,7 @@ public class NoteServiceImpl implements NoteService {
 
     @Override
     public NoteDto updateNote(NoteDto noteDto) {
-        Optional<Note> noteById = noteDao.findById(noteDto.getId());
-        noteById.orElseThrow(NotFoundNoteException::new);
+        getNote(noteDto.getId());
         return mapAndUpdate(noteDto);
     }
 
@@ -83,14 +82,8 @@ public class NoteServiceImpl implements NoteService {
         note.setTitle(dto.getTitle());
         note.setContent(dto.getContent());
 
-        Category category = categoryDao
-                .findById(dto.getCategoryId())
-                .orElseThrow(NotFoundCategoryException::new);
-
-
-        Project project = projectDao
-                .findById(dto.getProjectId())
-                .orElseThrow(ProjectNotExistsException::new);
+        Category category = getCategory(dto.getCategoryId());
+        Project project = getProject(dto.getProjectId());
 
         if (dto.getPersonId() != null) {
             Person person = personDao
@@ -109,10 +102,7 @@ public class NoteServiceImpl implements NoteService {
 
     @Override
     public NoteDto deleteNote(Integer noteId) {
-        Optional<Note> noteToDeleteById = noteDao.findById(noteId);
-        Note note = noteToDeleteById
-                .orElseThrow(NotFoundNoteException::new);
-
+        Note note = getNote(noteId);
         noteDao.remove(note);
         return NoteMapper.toDto(note);
     }
@@ -132,27 +122,18 @@ public class NoteServiceImpl implements NoteService {
         Integer personId = personForNoteDto.getPersonId();
 
 
-        Note noteById = noteDao
-                .findById(noteId)
-                .orElseThrow(NotFoundNoteException::new);
-
-        Person personById = personDao
-                .findById(personId)
-                .orElseThrow(() -> {
-                    throw new NotFoundPersonException("Person is not found by id: " + personId);
-                });
+        Note noteById = getNote(noteId);
+        Person personById = getPerson(personId);
 
 
         List<Project> projectsFromPerson = personById.getProjects();
-
         Project projectWithNote = noteById.getProject();
 
-        if(projectWithNote == null) {
+        if (projectWithNote == null) {
             throw new NoteNotSetProjectException();
         }
 
-
-        if(!projectsFromPerson.contains(projectWithNote)) {
+        if (!projectsFromPerson.contains(projectWithNote)) {
             throw new ResponseStatusException(
                     HttpStatus.CONFLICT,
                     "Project from person who you try set how owner for note is not assigned to the same project as the note"
@@ -163,7 +144,6 @@ public class NoteServiceImpl implements NoteService {
         return NoteMapper.toDto(noteDao.update(noteById));
     }
 
-
     private NoteDto mapAndUpdate(NoteDto noteDto) {
         Note note = NoteMapper.toEntity(noteDto);
         Note savedNote = noteDao.update(note);
@@ -173,6 +153,33 @@ public class NoteServiceImpl implements NoteService {
     private NoteDto mapAndSave(Note note) {
         Note savedNote = noteDao.save(note);
         return NoteMapper.toDto(savedNote);
+    }
+
+    private Project getProject(Integer projectId) {
+        return projectDao
+                .findById(projectId)
+                .orElseThrow(ProjectNotExistsException::new);
+    }
+
+    private Person getPerson(Integer personId) {
+        Optional<Person> personById = personDao.findById(personId);
+        personById.orElseThrow(() -> {
+            throw new NotFoundPersonException("Not found person by id: " + personId);
+        });
+        return personById.get();
+    }
+
+
+    private Note getNote(Integer noteId) {
+        return noteDao
+                .findById(noteId)
+                .orElseThrow(NotFoundNoteException::new);
+    }
+
+    private Category getCategory(Integer categoryId) {
+        return categoryDao
+                .findById(categoryId)
+                .orElseThrow(NotFoundCategoryException::new);
     }
 
 

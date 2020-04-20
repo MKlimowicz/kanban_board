@@ -1,4 +1,4 @@
-package com.example.kanban.exception;
+package com.example.kanban.exception.project;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;

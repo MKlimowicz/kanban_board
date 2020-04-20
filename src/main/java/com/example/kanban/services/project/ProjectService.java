@@ -16,4 +16,5 @@ public interface ProjectService {
     ProjectDto getProjectById(Integer projectId);
     void addPersonToProject(PersonForProjectDto personForProjectDto);
     List<PersonDto> getPersonFromProject(Integer projectId);
+    List<NoteDto> getNoteFromProject(Integer projectId);
 }

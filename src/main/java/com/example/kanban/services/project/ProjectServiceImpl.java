@@ -2,13 +2,15 @@ package com.example.kanban.services.project;
 
 import com.example.kanban.dao.person.PersonDao;
 import com.example.kanban.dao.project.ProjectDao;
+import com.example.kanban.dto.NoteDto;
 import com.example.kanban.dto.PersonDto;
 import com.example.kanban.dto.PersonForProjectDto;
 import com.example.kanban.dto.ProjectDto;
-import com.example.kanban.exception.PersonIsAlreadyAddedToProjectException;
-import com.example.kanban.exception.ProjectNotExistsException;
+import com.example.kanban.exception.person.PersonIsAlreadyAddedToProjectException;
+import com.example.kanban.exception.project.ProjectNotExistsException;
 import com.example.kanban.exception.person.NotFoundPersonException;
 import com.example.kanban.exception.project.ProjectWithThisNameExistsException;
+import com.example.kanban.mapper.NoteMapper;
 import com.example.kanban.mapper.PersonMapper;
 import com.example.kanban.mapper.ProjectMapper;
 import com.example.kanban.model.Person;
@@ -30,7 +32,7 @@ public class ProjectServiceImpl implements ProjectService {
     private ProjectDao projectDao;
 
     @Autowired
-    public ProjectServiceImpl( PersonDao personDao, ProjectDao projectDao) {
+    public ProjectServiceImpl(PersonDao personDao, ProjectDao projectDao) {
         this.personDao = personDao;
         this.projectMapper = new ProjectMapper();
         this.personMapper = new PersonMapper();
@@ -48,9 +50,7 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     public ProjectDto updateProject(ProjectDto projectDto) {
-        projectDao
-                .findById(projectDto.getId())
-                .orElseThrow(ProjectNotExistsException::new);
+        getProject(projectDto.getId());
         return mapAndUpdate(projectDto);
     }
 
@@ -66,8 +66,7 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     public ProjectDto deleteProject(Integer projectId) {
-        Optional<Project> projectById = projectDao.findById(projectId);
-        Project project = projectById.orElseThrow(ProjectNotExistsException::new);
+        Project project = getProject(projectId);
         projectDao.remove(project);
         return projectMapper.toDto(project);
     }
@@ -78,6 +77,47 @@ public class ProjectServiceImpl implements ProjectService {
                 .findById(projectId)
                 .map(projectMapper::toDto)
                 .orElseThrow(ProjectNotExistsException::new);
+    }
+
+
+    @Override
+    public void addPersonToProject(PersonForProjectDto personForProjectDto) {
+        Integer personId = personForProjectDto.getPersonId();
+        Integer projectId = personForProjectDto.getProjectId();
+
+        Person person = getPerson(personId);
+        Project project = getProject(projectId);
+
+        List<Person> personsForProject = project.getPersons();
+
+        if (personsForProject.contains(person)) {
+            throw new PersonIsAlreadyAddedToProjectException();
+        }
+
+        personsForProject.add(person);
+        project.setPersons(personsForProject);
+
+        projectDao.save(project);
+    }
+
+    @Override
+    public List<PersonDto> getPersonFromProject(Integer projectId) {
+        return projectDao
+                .findById(projectId)
+                .map(Project::getPersons)
+                .orElseThrow(ProjectNotExistsException::new)
+                .stream()
+                .map(personMapper::toDto)
+                .collect(Collectors.toList());
+
+    }
+
+    @Override
+    public List<NoteDto> getNoteFromProject(Integer projectId) {
+        return getProject(projectId).getNotes()
+                .stream()
+                .map(NoteMapper::toDto)
+                .collect(Collectors.toList());
     }
 
 
@@ -93,45 +133,19 @@ public class ProjectServiceImpl implements ProjectService {
         return projectMapper.toDto(savedProject);
     }
 
-    @Override
-    public void addPersonToProject(PersonForProjectDto personForProjectDto) {
-        Integer personId = personForProjectDto.getPersonId();
-        Integer projectId = personForProjectDto.getProjectId();
 
-        Person person = personDao
-                .findById(personId)
-                .orElseThrow(() -> {
-                    throw new NotFoundPersonException("Not found person by id: " + personId);
-                });
-
-        Project project = projectDao
-                .findById(projectId)
-                .orElseThrow(ProjectNotExistsException::new);
-
-        List<Person> personsForProject = project.getPersons();
-
-        if(personsForProject.contains(person)) {
-            throw new PersonIsAlreadyAddedToProjectException();
-        }
-
-        personsForProject.add(person);
-        project.setPersons(personsForProject);
-
-
-        projectDao.save(project);
-
-    }
-
-    @Override
-    public List<PersonDto> getPersonFromProject(Integer projectId) {
+    private Project getProject(Integer projectId) {
         return projectDao
                 .findById(projectId)
-                .map(Project::getPersons)
-                .orElseThrow(ProjectNotExistsException::new)
-                .stream()
-                .map(personMapper::toDto)
-                .collect(Collectors.toList());
+                .orElseThrow(ProjectNotExistsException::new);
+    }
 
+    private Person getPerson(Integer personId) {
+        Optional<Person> personById = personDao.findById(personId);
+        personById.orElseThrow(() -> {
+            throw new NotFoundPersonException("Not found person by id: " + personId);
+        });
+        return personById.get();
     }
 
 }

@@ -25,5 +25,4 @@ public interface PersonService {
 
     List<ProjectDto> getPersonProjectList(Integer personId);
 
-
 }

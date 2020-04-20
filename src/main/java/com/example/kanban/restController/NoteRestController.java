@@ -30,18 +30,15 @@ public class NoteRestController {
     }
 
 
-
     @GetMapping()
-    public List<NoteDto> getListNote(){
+    public List<NoteDto> getListNote() {
         return noteService.getListNote();
     }
 
 
     @PostMapping()
     public ResponseEntity<NoteDto> saveNote(@RequestBody NoteDto dto) {
-        if(dto.getId() != null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Note to save, can't have set id");
-        }
+        checkID(dto.getId(), "Note to save, can't have set id");
         NoteDto savedNote = noteService.saveNote(dto);
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest()
@@ -54,39 +51,48 @@ public class NoteRestController {
 
 
     @GetMapping("/category/{categoryId}")
-    public List<NoteDto> getListNoteByCategoryId(@PathVariable  Integer categoryId) {
+    public List<NoteDto> getListNoteByCategoryId(@PathVariable Integer categoryId) {
         return noteService.getListNoteByCategoryId(categoryId);
     }
 
 
-    @DeleteMapping("/{categoryId}")
-    public ResponseEntity<NoteDto> deleteNoteById(@PathVariable Integer categoryId) {
-        if(categoryId == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Id must by set when you try delete note");
-        }
-        NoteDto deletedNote = noteService.deleteNote(categoryId);
+    @DeleteMapping("/{noteId}")
+    public ResponseEntity<NoteDto> deleteNoteById(@PathVariable Integer noteId) {
+        checkID(noteId, "Id must by set when you try delete note");
+        NoteDto deletedNote = noteService.deleteNote(noteId);
         return ResponseEntity.ok(deletedNote);
     }
 
     @PutMapping()
     public ResponseEntity<NoteDto> updateNote(@RequestBody NoteDto dto) {
-        if(dto.getId() == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Note to save, must have set id");
-        }
+        checkID(dto.getId(), "Id must by set when you try update note");
         NoteDto updatedNote = noteService.updateNote(dto);
         return ResponseEntity.ok(updatedNote);
     }
 
 
     @PutMapping("/addPerson")
-    public ResponseEntity<NoteDto> addOwnerPerson(@RequestBody PersonForNoteDto personForNoteDto){
+    public ResponseEntity<NoteDto> addOwnerPerson(@RequestBody PersonForNoteDto personForNoteDto) {
         Integer noteId = personForNoteDto.getNoteId();
         Integer personId = personForNoteDto.getPersonId();
-        if(noteId == null || personId == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You must give id for both");
-        }
+        checkBothId(noteId, personId, "You must give id for both");
 
         NoteDto noteDto = noteService.addOwnerPerson(personForNoteDto);
         return ResponseEntity.ok(noteDto);
+    }
+
+    private void checkID(Integer noteId, String message) {
+        if (noteId == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, message + ". ID: " + noteId);
+        }
+    }
+
+    private void checkBothId(Integer noteId, Integer personId, String message){
+        if (noteId == null || personId == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, message
+                    + ". noteId: " + noteId
+                    + ". personId: " + personId);
+        }
+
     }
 }

@@ -1,7 +1,7 @@
 package com.example.kanban.restController;
 
 
-
+import com.example.kanban.dto.NoteDto;
 import com.example.kanban.dto.PersonDto;
 import com.example.kanban.dto.PersonForProjectDto;
 import com.example.kanban.dto.ProjectDto;
@@ -29,18 +29,15 @@ public class ProjectRestController {
     }
 
 
-
     @GetMapping()
-    public List<ProjectDto> getProjects(){
+    public List<ProjectDto> getProjects() {
         return projectService.getProjects();
     }
 
 
     @PostMapping()
     public ResponseEntity<ProjectDto> saveProject(@RequestBody ProjectDto dto) {
-        if(dto.getId() != null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Project to save, can't have set id");
-        }
+        checkID(dto.getId(),  "Project to save, can't have set id");
         ProjectDto savedProject = projectService.saveProject(dto);
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest()
@@ -53,7 +50,7 @@ public class ProjectRestController {
 
 
     @GetMapping("/{projectId}")
-    public ResponseEntity<ProjectDto> getProjectById(@PathVariable  Integer projectId) {
+    public ResponseEntity<ProjectDto> getProjectById(@PathVariable Integer projectId) {
         ProjectDto projectById = projectService.getProjectById(projectId);
         return ResponseEntity.ok(projectById);
     }
@@ -61,18 +58,14 @@ public class ProjectRestController {
 
     @DeleteMapping("/{projectId}")
     public ResponseEntity<ProjectDto> deleteProjectById(@PathVariable Integer projectId) {
-        if(projectId == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Id must by set when you try delete project");
-        }
+        checkID(projectId, "Id must by set when you try delete project");
         ProjectDto deletedProject = projectService.deleteProject(projectId);
         return ResponseEntity.ok(deletedProject);
     }
 
     @PutMapping()
     public ResponseEntity<ProjectDto> updateProject(@RequestBody ProjectDto dto) {
-        if(dto.getId() == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Project to save, must have set id");
-        }
+        checkID(dto.getId(), "Project to save, must have set id");
         ProjectDto updatedProject = projectService.updateProject(dto);
         return ResponseEntity.ok(updatedProject);
     }
@@ -83,7 +76,7 @@ public class ProjectRestController {
         Integer personId = personForProjectDto.getPersonId();
         Integer projectId = personForProjectDto.getProjectId();
 
-        if(personId == null && projectId == null){
+        if (personId == null && projectId == null) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
                     "You must provide the id of the person and project to which you want to add it"
@@ -95,13 +88,21 @@ public class ProjectRestController {
 
     @GetMapping("/persons/{projectId}")
     public List<PersonDto> getPersonsWithProjectById(@PathVariable Integer projectId) {
-        if(projectId == null) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
-                    "You must provide the id of the project "
-            );
-        }
-
+        checkID(projectId, "You must provide the id of the project ");
         return projectService.getPersonFromProject(projectId);
+    }
+
+
+    @GetMapping("/notes/{projectId}")
+    public List<NoteDto> getNotesFromProject(@PathVariable Integer projectId) {
+        checkID(projectId, "You must provide the id of the project ");
+        return projectService.getNoteFromProject(projectId);
+    }
+
+
+    private void checkID(Integer projectId, String message) {
+        if (projectId == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, message);
+        }
     }
 }
