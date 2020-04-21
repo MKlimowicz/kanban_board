@@ -4,6 +4,7 @@ import com.example.kanban.dto.NoteDto;
 import com.example.kanban.model.Category;
 import com.example.kanban.model.Note;
 import com.example.kanban.model.Person;
+import com.example.kanban.model.Project;
 
 public class NoteMapper {
 
@@ -15,13 +16,17 @@ public class NoteMapper {
         dto.setTitle(note.getTitle());
 
         Category category = note.getCategory();
-        dto.setCategoryId(category.getId());
+        if (category != null) {
+            dto.setCategoryId(category.getId());
+        }
 
-        Integer projectId = note.getProject().getId();
-        dto.setProjectId(projectId);
+        Project project = note.getProject();
+        if (project != null) {
+            dto.setProjectId(project.getId());
+        }
 
         Person person = note.getPerson();
-        if(person != null) {
+        if (person != null) {
             dto.setPersonId(person.getId());
         }
 
@@ -41,11 +46,7 @@ public class NoteMapper {
         category.setId(noteDto.getCategoryId());
 
 
-
-
-
         note.setCategory(category);
-
 
 
         return note;

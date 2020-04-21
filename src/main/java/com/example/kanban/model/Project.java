@@ -2,6 +2,7 @@ package com.example.kanban.model;
 
 
 import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -20,13 +21,13 @@ public class Project {
             joinColumns = {@JoinColumn(name="projectId", referencedColumnName="projectId")},
             inverseJoinColumns = {@JoinColumn(name="personId", referencedColumnName="personId")}
     )
-    private List<Person> persons;
+    private List<Person> persons = new ArrayList<>();
 
     @OneToMany(mappedBy = "project",
             cascade = { CascadeType.MERGE , CascadeType.PERSIST  },
             orphanRemoval = true)
 
-    private List<Note> notes;
+    private List<Note> notes = new ArrayList<>();
 
 
     public List<Note> getNotes() {

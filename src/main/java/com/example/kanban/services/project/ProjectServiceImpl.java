@@ -73,20 +73,14 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     public ProjectDto getProjectById(Integer projectId) {
-        return projectDao
-                .findById(projectId)
-                .map(projectMapper::toDto)
-                .orElseThrow(ProjectNotExistsException::new);
+        return projectMapper.toDto(getProject(projectId));
     }
 
 
     @Override
-    public void addPersonToProject(PersonForProjectDto personForProjectDto) {
-        Integer personId = personForProjectDto.getPersonId();
-        Integer projectId = personForProjectDto.getProjectId();
-
-        Person person = getPerson(personId);
-        Project project = getProject(projectId);
+    public List<PersonDto> addPersonToProject(PersonForProjectDto personForProjectDto) {
+        Person person = getPerson(personForProjectDto.getPersonId());
+        Project project = getProject(personForProjectDto.getProjectId());
 
         List<Person> personsForProject = project.getPersons();
 
@@ -97,24 +91,27 @@ public class ProjectServiceImpl implements ProjectService {
         personsForProject.add(person);
         project.setPersons(personsForProject);
 
-        projectDao.save(project);
+        return projectDao
+                .update(project)
+                .getPersons()
+                .stream()
+                .map(personMapper::toDto)
+                .collect(Collectors.toList());
     }
 
     @Override
     public List<PersonDto> getPersonFromProject(Integer projectId) {
-        return projectDao
-                .findById(projectId)
-                .map(Project::getPersons)
-                .orElseThrow(ProjectNotExistsException::new)
+        return getProject(projectId)
+                .getPersons()
                 .stream()
                 .map(personMapper::toDto)
                 .collect(Collectors.toList());
-
     }
 
     @Override
     public List<NoteDto> getNoteFromProject(Integer projectId) {
-        return getProject(projectId).getNotes()
+        return getProject(projectId)
+                .getNotes()
                 .stream()
                 .map(NoteMapper::toDto)
                 .collect(Collectors.toList());
