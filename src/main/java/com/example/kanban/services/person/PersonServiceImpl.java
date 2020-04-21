@@ -19,7 +19,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
-public class PersonServiceImpl implements PersonService{
+public class PersonServiceImpl implements PersonService {
 
 
     private PersonMapper personMapper;
@@ -27,7 +27,7 @@ public class PersonServiceImpl implements PersonService{
     private PersonDao personDao;
 
     @Autowired
-    public PersonServiceImpl( PersonDao personDao) {
+    public PersonServiceImpl(PersonDao personDao) {
         this.personDao = personDao;
         personMapper = new PersonMapper();
         projectMapper = new ProjectMapper();
@@ -63,9 +63,9 @@ public class PersonServiceImpl implements PersonService{
 
     @Override
     public List<NoteDto> getListNoteFromPerson(Integer personId) {
-        Person person = getPerson(personId);
 
-        return person.getNotes()
+        return getPerson(personId)
+                .getNotes()
                 .stream()
                 .map(NoteMapper::toDto)
                 .collect(Collectors.toList());
@@ -76,7 +76,7 @@ public class PersonServiceImpl implements PersonService{
         Integer personId = personForProjectDto.getPersonId();
         Integer projectId = personForProjectDto.getProjectId();
 
-        return  getPerson(personId)
+        return getPerson(personId)
                 .getNotes()
                 .stream()
                 .filter(note -> note.getProject().getId().equals(projectId))
@@ -88,7 +88,7 @@ public class PersonServiceImpl implements PersonService{
 
     @Override
     public PersonDto getPersonById(Integer personId) {
-       return personMapper.toDto(getPerson(personId));
+        return personMapper.toDto(getPerson(personId));
     }
 
 
