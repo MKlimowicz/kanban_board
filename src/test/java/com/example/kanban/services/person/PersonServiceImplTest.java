@@ -40,7 +40,11 @@ class PersonServiceImplTest {
     private PersonMapper personMapper;
     private ProjectMapper projectMapper;
     private Person person;
+    private Person person1;
+    private Person personWithOutId;
+    private PersonDto personWithOutIdDto;
     private PersonDto personDto;
+    private PersonDto personDto1;
 
 
     @BeforeEach
@@ -49,10 +53,14 @@ class PersonServiceImplTest {
         personMapper = new PersonMapper();
         projectMapper = new ProjectMapper();
         person = getPersonList().get(0);
+        person1 = getPersonList().get(0);
         personDto = personMapper.toDto(person);
+        personDto1 = personMapper.toDto(person1);
         person.setNotes(getListNote());
         person.setProjects(getListProject());
-
+        personWithOutId = getPersonList().get(0);
+        personWithOutId.setId(null);
+        personWithOutIdDto = personMapper.toDto(personWithOutId);
     }
 
 
@@ -73,13 +81,27 @@ class PersonServiceImplTest {
 
     // ------------ PersonDto updatePerson(PersonDto personDto) -----------
     @Test
+    public void shouldReturnUpdatedPerson() {
+        //given
+        given(personDao.findById(1)).willReturn(Optional.ofNullable(person));
+        given(personDao.update(person1)).willReturn(person1);
+        //when
+        PersonDto personDto = personServiceImpl.updatePerson(this.personDto1);
+        //then
+        assertThat(personDto.getId(), is(1));
+        assertThat(person1.getName(), equalTo(person1.getName()));
+    }
+
+    // ----------------------  public PersonDto getPersonById(Integer personId)  ----------------
+
+    @Test
     public void shouldThrowExceptionIfPersonByIdNotExists() {
         //given
         given(personDao.findById(1)).willReturn(Optional.empty());
         //when
         //then
         assertThrows(NotFoundPersonException.class, () -> {
-            personServiceImpl.updatePerson(personDto);
+            personServiceImpl.getPersonById(1);
         });
     }
 
@@ -92,6 +114,32 @@ class PersonServiceImplTest {
         //then
         assertThat(personById.getId() , is(1));
         assertThat(personById.getName(), equalTo(personById.getName()));
+    }
+
+    // -------------  PersonDto savePerson(PersonDto personDto)  ------
+
+    @Test
+    public void shouldReturnSavedAndMapPerson(){
+        //given
+        given(personDao.save(personWithOutId)).willReturn(person);
+        //when
+        PersonDto personDto = personServiceImpl.savePerson(personWithOutIdDto);
+        //then
+        assertThat(personDto.getId(), is(1));
+        assertThat(personDto.getName(), equalTo(personWithOutId.getName()));
+    }
+
+
+    // ------------------ PersonDto deletePerson(Integer personId) ---------------
+    @Test
+    public void shouldReturnDeletedPerson() {
+        //given
+        given(personDao.findById(1)).willReturn(Optional.ofNullable(person));
+        //when
+        PersonDto personDto = personServiceImpl.deletePerson(1);
+        //then
+        assertThat(personDto.getId() , is(1));
+        assertThat(personDto.getName(), equalTo(person.getName()));
     }
 
 
