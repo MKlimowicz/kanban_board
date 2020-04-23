@@ -62,12 +62,12 @@ public class NoteDto {
     }
 
 
-
-
     @Override
     public String toString() {
         return "NoteDto{" +
                 "id=" + id +
+                ", projectId=" + projectId +
+                ", personId=" + personId +
                 ", content='" + content + '\'' +
                 ", title='" + title + '\'' +
                 ", categoryId=" + categoryId +

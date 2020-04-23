@@ -63,13 +63,14 @@ public class NoteServiceImpl implements NoteService {
     @Override
     public NoteDto updateNote(NoteDto noteDto) {
         getNote(noteDto.getId());
+        System.out.println(noteDto);
         return mapAndUpdate(noteDto);
     }
 
     @Override
     public NoteDto saveNote(NoteDto dto) {
 
-        if (dto.getContent().isEmpty() || dto.getTitle().isEmpty()) {
+        if (dto.getContent() == null || dto.getTitle() == null) {
 
             throw new EmptyNoteException(
                     "Note can't have empty value, content: " + dto.getContent() +

@@ -81,6 +81,8 @@ public class Note {
                 ", content='" + content + '\'' +
                 ", title='" + title + '\'' +
                 ", category=" + category +
+                ", person=" + person +
+                ", project=" + project +
                 '}';
     }
 
