@@ -94,6 +94,7 @@ public class PersonRestController {
         checkID(personId, "Must give personId.");
         checkID(projectId, "Must give projectId.");
 
+        System.out.println("method: " + personForProjectDto);
         return personService.getListNoteFromPersonForProject(personForProjectDto);
     }
 
