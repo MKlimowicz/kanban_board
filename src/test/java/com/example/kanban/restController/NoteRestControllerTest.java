@@ -196,6 +196,18 @@ public class NoteRestControllerTest {
                 .andExpect(status().isBadRequest());
     }
 
+    // -- ResponseEntity<NoteDto> getNoteById(Integer noteId)  ----
+    @Test
+    public void shouldReturnNoteById() throws Exception {
+        //given
+        given(noteService.getNoteById(1)).willReturn(noteDto);
+        //when
+        //then
+        mockMvc.perform(get(api + "/{noteId}", 1))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id", is(1)));
+    }
+
     private List<PersonDto> getPersonDtoList() {
         return getPersonList()
                 .stream()

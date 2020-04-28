@@ -269,6 +269,19 @@ class NoteServiceImplTest {
 
     }
 
+    // ---- NoteDto getNoteById(Integer noteId)  ----
+    @Test
+    public void shouldReturnNoteById() {
+        //given
+        given(noteDao.findById(1)).willReturn(Optional.ofNullable(note));
+        //when
+        NoteDto noteById = noteService.getNoteById(1);
+        //then
+        assertThat(noteById.getId(), is(1));
+    }
+
+
+
 
 
     private List<Note> getListNote() {

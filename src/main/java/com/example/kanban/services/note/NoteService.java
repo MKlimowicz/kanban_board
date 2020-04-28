@@ -15,4 +15,5 @@ public interface NoteService {
     NoteDto deleteNote(Integer noteId);
     List<NoteDto> getListNoteByCategoryId(Integer categoryId);
     NoteDto addOwnerPerson(PersonForNoteDto personForNoteDto);
+    NoteDto getNoteById(Integer noteId);
 }

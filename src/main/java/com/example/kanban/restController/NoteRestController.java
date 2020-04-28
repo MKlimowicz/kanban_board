@@ -49,6 +49,12 @@ public class NoteRestController {
         return ResponseEntity.created(location).body(savedNote);
     }
 
+    @GetMapping("/{noteId}")
+    public ResponseEntity<NoteDto> getNoteById(@PathVariable Integer noteId) {
+        checkID(noteId, "You must give id note");
+        NoteDto noteDto = noteService.getNoteById(noteId);
+        return ResponseEntity.ok(noteDto);
+    }
 
     @GetMapping("/category/{categoryId}")
     public List<NoteDto> getListNoteByCategoryId(@PathVariable Integer categoryId) {

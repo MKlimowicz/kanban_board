@@ -145,6 +145,11 @@ public class NoteServiceImpl implements NoteService {
         return NoteMapper.toDto(noteDao.update(noteById));
     }
 
+    @Override
+    public NoteDto getNoteById(Integer noteId) {
+        return NoteMapper.toDto(getNote(noteId));
+    }
+
     private NoteDto mapAndUpdate(NoteDto noteDto) {
         Note note = NoteMapper.toEntity(noteDto);
         Note savedNote = noteDao.update(note);
