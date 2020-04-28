@@ -56,15 +56,19 @@ public class NoteRestControllerTest {
     private ProjectMapper projectMapper;
     private NoteDto noteDto;
     private Note note;
+    private Note noteWithOutId;
+    private NoteDto noteDtoWithOutId;
 
     @Before
     public void setUp() {
         api = "/api/note";
         personMapper = new PersonMapper();
         note = getListNote().get(0);
-        noteDto = NoteMapper.toDto(note);
-    }
+        noteDto = getNoteDtoList().get(0);
 
+        noteWithOutId = getListNote().get(1);
+        noteDtoWithOutId = getNoteDtoList().get(1);
+    }
 
 
     // -------------  List<NoteDto> getListNote() -----------
@@ -77,8 +81,8 @@ public class NoteRestControllerTest {
         // then
         mockMvc.perform(get(api)
                 .contentType(APPLICATION_JSON))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$", hasSize(3)));
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(3)));
     }
 
 
@@ -93,6 +97,19 @@ public class NoteRestControllerTest {
                 .andExpect(status().isBadRequest());
     }
 
+    @Test
+    public void shouldReturnSavedNote() throws Exception {
+        //given
+        given(noteService.saveNote(noteDtoWithOutId)).willReturn(noteDto);
+        //when
+        //then
+        mockMvc.perform(post(api)
+                .contentType(APPLICATION_JSON)
+                .content(asJsonString(noteDtoWithOutId)))
+                     .andExpect(status().isCreated())
+                     .andExpect(jsonPath("$.id", is(1)));
+    }
+
     // ------------ List<NoteDto> getListNoteByCategoryId(@PathVariable Integer categoryId) -----
     @Test
     public void shouldReturnListNoteByCategoryId() throws Exception {
@@ -102,8 +119,8 @@ public class NoteRestControllerTest {
         //then
         mockMvc.perform(get(api + "/category/{id}", 1)
                 .contentType(APPLICATION_JSON))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$", hasSize(3)));
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(3)));
     }
 
     // ---------- ResponseEntity<NoteDto> deleteNoteById(@PathVariable Integer noteId)-----------
@@ -167,7 +184,7 @@ public class NoteRestControllerTest {
     }
 
     @Test
-    public  void shouldReturnNoteWithAddedPerson() throws Exception{
+    public void shouldReturnNoteWithAddedPerson() throws Exception {
         //given
         PersonForNoteDto personForNoteDto = new PersonForNoteDto();
         personForNoteDto.setNoteId(1);
@@ -218,7 +235,6 @@ public class NoteRestControllerTest {
         note.setTitle("Zadanie1");
         note.setContent("Opis1");
         Note note1 = new Note();
-        note1.setId(2);
         note1.setTitle("Zadanie2");
         note1.setContent("Opis2");
         Note note2 = new Note();

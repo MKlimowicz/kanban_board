@@ -78,7 +78,7 @@ public class ProjectServiceImpl implements ProjectService {
 
 
     @Override
-    public List<PersonDto> addPersonToProject(PersonForProjectDto personForProjectDto) {
+    public PersonDto addPersonToProject(PersonForProjectDto personForProjectDto) {
         Person person = getPerson(personForProjectDto.getPersonId());
         Project project = getProject(personForProjectDto.getProjectId());
 
@@ -87,16 +87,9 @@ public class ProjectServiceImpl implements ProjectService {
         if (personsForProject.contains(person)) {
             throw new PersonIsAlreadyAddedToProjectException();
         }
-
         personsForProject.add(person);
         project.setPersons(personsForProject);
-
-        return projectDao
-                .update(project)
-                .getPersons()
-                .stream()
-                .map(personMapper::toDto)
-                .collect(Collectors.toList());
+        return personMapper.toDto(person);
     }
 
     @Override

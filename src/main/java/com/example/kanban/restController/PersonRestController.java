@@ -36,7 +36,7 @@ public class PersonRestController {
 
     @PostMapping()
     public ResponseEntity<PersonDto> createPerson(@RequestBody PersonDto personDto) {
-        checkID(personDto.getId(), "Id the person to create cannot bo set");
+        checkIDSave(personDto.getId(), "Id the person to create cannot bo set");
         PersonDto savedPersonDto = personService.savePerson(personDto);
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest()
@@ -101,6 +101,13 @@ public class PersonRestController {
 
     private void checkID(Integer personId, String message) {
         if (personId == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, message);
+        }
+    }
+
+
+    private void checkIDSave(Integer personId, String message) {
+        if (personId != null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, message);
         }
     }

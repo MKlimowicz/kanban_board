@@ -206,10 +206,10 @@ class ProjectServiceImplTest {
 
         given(projectDao.update(projectWithId)).willReturn(projectWithId);
         //when
-        List<PersonDto> persons = projectServiceImpl.addPersonToProject(personForProjectDto);
+        PersonDto person = projectServiceImpl.addPersonToProject(personForProjectDto);
         //then
-        assertThat(persons, hasSize(2));
-        assertThat(persons.get(0).getName(), equalTo(person1.getName()));
+        assertThat(person.getId(), is(1));
+        assertThat(person.getName(), equalTo(person1.getName()));
     }
 
 

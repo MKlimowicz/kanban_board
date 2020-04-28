@@ -37,7 +37,7 @@ public class ProjectRestController {
 
     @PostMapping()
     public ResponseEntity<ProjectDto> saveProject(@RequestBody ProjectDto dto) {
-        checkID(dto.getId(),  "Project to save, can't have set id");
+        checkIDSave(dto.getId(), "Project to save, can't have set id");
         ProjectDto savedProject = projectService.saveProject(dto);
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest()
@@ -51,6 +51,7 @@ public class ProjectRestController {
 
     @GetMapping("/{projectId}")
     public ResponseEntity<ProjectDto> getProjectById(@PathVariable Integer projectId) {
+        checkID(projectId, "You must give id project");
         ProjectDto projectById = projectService.getProjectById(projectId);
         return ResponseEntity.ok(projectById);
     }
@@ -72,17 +73,13 @@ public class ProjectRestController {
 
 
     @PostMapping("/addPerson")
-    public void addPersonForProject(@RequestBody PersonForProjectDto personForProjectDto) {
+    public ResponseEntity<PersonDto> addPersonForProject(@RequestBody PersonForProjectDto personForProjectDto) {
         Integer personId = personForProjectDto.getPersonId();
         Integer projectId = personForProjectDto.getProjectId();
 
-        if (personId == null && projectId == null) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
-                    "You must provide the id of the person and project to which you want to add it"
-            );
-        }
-        projectService.addPersonToProject(personForProjectDto);
+        checkBothId(projectId, personId, "You must provide the id of the person and project to which you want to add it");
+        PersonDto personDto = projectService.addPersonToProject(personForProjectDto);
+        return ResponseEntity.ok(personDto);
 
     }
 
@@ -104,5 +101,20 @@ public class ProjectRestController {
         if (projectId == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, message);
         }
+    }
+
+    private void checkIDSave(Integer projectId, String message) {
+        if (projectId != null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, message);
+        }
+    }
+
+    private void checkBothId(Integer projectId, Integer personId, String message) {
+        if (projectId == null || personId == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, message
+                    + ". noteId: " + projectId
+                    + ". personId: " + personId);
+        }
+
     }
 }

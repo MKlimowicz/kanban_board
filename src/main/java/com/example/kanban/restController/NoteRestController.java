@@ -38,7 +38,7 @@ public class NoteRestController {
 
     @PostMapping()
     public ResponseEntity<NoteDto> saveNote(@RequestBody NoteDto dto) {
-        checkID(dto.getId(), "Note to save, can't have set id");
+        checkIDSave(dto.getId(), "Note to save, can't have set id");
         NoteDto savedNote = noteService.saveNote(dto);
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest()
@@ -94,5 +94,12 @@ public class NoteRestController {
                     + ". personId: " + personId);
         }
 
+    }
+
+
+    private void checkIDSave(Integer personId, String message) {
+        if (personId != null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, message);
+        }
     }
 }

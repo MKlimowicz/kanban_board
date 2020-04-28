@@ -10,7 +10,7 @@ import com.example.kanban.mapper.ProjectMapper;
 import com.example.kanban.model.Note;
 import com.example.kanban.model.Person;
 import com.example.kanban.model.Project;
-import com.example.kanban.services.person.PersonService;
+import com.example.kanban.services.project.ProjectService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Before;
 import org.junit.Test;
@@ -19,13 +19,14 @@ import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Bean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
-import javax.print.attribute.standard.Media;
 
 import static org.hamcrest.Matchers.*;
+import static org.mockito.Mockito.mock;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -45,180 +46,182 @@ import static org.mockito.BDDMockito.given;
 
 
 @RunWith(SpringRunner.class)
-@WebMvcTest(PersonRestController.class)
-public class PersonRestControllerTest {
+@WebMvcTest(ProjectRestController.class)
+public class ProjectRestControllerTest {
+
 
     @Autowired
     MockMvc mockMvc;
 
     @MockBean
-    private PersonService personService;
+    private ProjectService projectService;
 
 
     private String api;
-    private PersonMapper personMapper;
-    private ProjectMapper projectMapper;
-    private Person person;
-    private PersonDto personDto;
-    private Person personWithOutId;
-    private PersonDto personDtoWithOutId;
+    private PersonMapper personMapper = new PersonMapper();
+    private ProjectMapper projectMapper = new ProjectMapper();
+    private Project project;
+    private ProjectDto projectDto;
+    private Project projectWithOutId;
+    private ProjectDto projectDtoWithOutId;
 
     @Before
-    public void setUp() {
-        api = "/api/person";
-        personMapper = new PersonMapper();
-        projectMapper = new ProjectMapper();
-
-        person = getPersonList().get(0);
-        personDto = getPersonDtoList().get(0);
-
-        personWithOutId = getPersonList().get(1);
-        personDtoWithOutId = getPersonDtoList().get(1);
+    public void setUp() throws Exception {
+        api = "/api/project";
+        project = getListProject().get(0);
+        projectDto = getProjectDto().get(0);
+        projectWithOutId = getListProject().get(1);
+        projectDtoWithOutId = getProjectDto().get(1);
     }
 
 
-    // -------------- List<PersonDto> getListPerson()  -----------------
-
     @Test
-    public void shouldReturnPersonList() throws Exception {
+    public void shouldReturnListProject() throws Exception {
         //given
-        given(personService.getListPerson()).willReturn(getPersonDtoList());
+        given(projectService.getProjects()).willReturn(getProjectDto());
         //when
         //then
-        mockMvc.perform(get(api))
+        mockMvc.perform(get(api)
+                .contentType(APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(3)));
     }
 
-
-    // ------------- ResponseEntity<PersonDto> createPerson(@RequestBody PersonDto personDto) -----------------
+    // --------------- ResponseEntity<ProjectDto> saveProject(@RequestBody ProjectDto dto) ------------
 
     @Test
-    public void shouldThrowExceptionIfPersonIdIsNotNull() throws Exception {
+    public void shouldThrowExceptionIfProjectToSaveHaveSetID() throws Exception {
         //given
         //when
         //then
-        mockMvc.perform(post(api, personDto))
+        mockMvc.perform(post(api, projectDto))
                 .andExpect(status().isBadRequest());
-
     }
 
     @Test
-    public void shouldReturnNewPerson() throws Exception {
+    public void shouldReturnSavedProject() throws Exception {
         //given
-        given(personService.savePerson(personDtoWithOutId)).willReturn(personDto);
+        given(projectService.saveProject(projectDtoWithOutId)).willReturn(projectDto);
         //when
         //then
         mockMvc.perform(post(api)
-                .contentType(APPLICATION_JSON)
-                .content(asJsonString(personDtoWithOutId)))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id", is(1)))
-                .andExpect(jsonPath("$.name", equalTo("Test")));
-
+                .content(asJsonString(projectDtoWithOutId))
+                .contentType(APPLICATION_JSON))
+                .andExpect(jsonPath("$.id", is(1)));
     }
 
-
-    // ------------- ResponseEntity<PersonDto> updatePerson(@RequestBody PersonDto personDto) ----------
+    // ----- ResponseEntity<ProjectDto> getProjectById(@PathVariable Integer projectId)  -----
 
     @Test
-    public void shouldReturnUpdatedPerson() throws Exception {
+    public void shouldReturnProjectById() throws Exception {
         //given
-        given(personService.updatePerson(personDto)).willReturn(personDto);
+        given(projectService.getProjectById(1)).willReturn(projectDto);
+        //when
+        //then
+        mockMvc.perform(get(api + "/{projectId}", 1))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id", is(1)));
+    }
+
+    // ---  ResponseEntity<ProjectDto> deleteProjectById(@PathVariable Integer projectId) ----
+
+    @Test
+    public void shouldReturnDeletedProjectById() throws Exception {
+        //given
+        given(projectService.deleteProject(1)).willReturn(projectDto);
+        //when
+        //then
+        mockMvc.perform(delete(api + "/{projectId}", 1))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id", is(1)));
+    }
+
+    // ---  ResponseEntity<ProjectDto> updateProject(@RequestBody ProjectDto dto) ----
+
+    @Test
+    public void shouldReturnUpdatedProject() throws Exception {
+        //given
+        given(projectService.updateProject(projectDto)).willReturn(projectDto);
         //when
         //then
         mockMvc.perform(put(api)
-                .contentType(APPLICATION_JSON)
-                .content(asJsonString(personDto)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id", is(1)))
-                .andExpect(jsonPath("$.name", equalTo("Test")));
-
+                .content(asJsonString(projectDto))
+                .contentType(APPLICATION_JSON))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.id", is(1)));
     }
 
-    // ----------- ResponseEntity<PersonDto> deletePerson(@PathVariable Integer personId) ------------
+
+    // --- addPersonForProject(@RequestBody PersonForProjectDto personForProjectDto) ----
 
     @Test
-    public void shouldReturnDeletedPersonById() throws Exception {
+    public void shouldThrowExceptionIfProjectIdIsNull() throws Exception {
         //given
-        given(personService.deletePerson(1)).willReturn(personDto);
-        //when
-        //then
-        mockMvc.perform(delete(api + "/{id}", 1)
-                .contentType(APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id", is(1)))
-                .andExpect(jsonPath("$.name", equalTo("Test")));
-    }
-
-
-    // ------------ List<NoteDto> getNotesForPerson(@PathVariable Integer personId) ------
-
-    @Test
-    public  void shouldReturnNotesFromPerson() throws Exception {
-        given(personService.getListNoteFromPerson(1)).willReturn(getNoteDtoList());
-        //when
-        //then
-        mockMvc.perform(get(api + "/notes/{id}", 1)
-                .contentType(APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(3)));
-    }
-
-    // -------------- ResponseEntity<PersonDto> getPersonById(@PathVariable Integer personId) ---------
-
-    @Test
-    public void shouldReturnPersonById() throws Exception {
-        //given
-        given(personService.getPersonById(1)).willReturn(personDto);
-        //when
-        //then
-        mockMvc.perform(get(api + "/{id}", 1)
-                .contentType(APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id", is(1)))
-                .andExpect(jsonPath("$.name", equalTo("Test")));
-    }
-
-    // ---------------- List<ProjectDto> getPersonProjectListById(@PathVariable Integer personId) --------------------
-
-    @Test
-    public void shouldReturnPersonProjectListById() throws Exception {
-        given(personService.getPersonProjectList(1)).willReturn(getProjectDto());
-        //when
-        //then
-        mockMvc.perform(get(api + "/projects/{id}", 1)
-                .contentType(APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(3)));
-    }
-
-
-
-
-    // ------------ List<NoteDto> getNoteFromPersonForProject(@RequestBody PersonForProjectDto personForProjectDto)-----
-
-    @Test
-    public  void shouldReturnNoteFromPersonForProject() throws Exception {
         PersonForProjectDto personForProjectDto = new PersonForProjectDto();
+        personForProjectDto.setPersonId(null);
         personForProjectDto.setProjectId(1);
-        personForProjectDto.setPersonId(1);
-
-        given(personService.getListNoteFromPersonForProject(personForProjectDto)).willReturn(getNoteDtoList());
         //when
         //then
-        mockMvc.perform(get(api + "/projects/notes", personForProjectDto)
-                .contentType(APPLICATION_JSON)
-                .content(asJsonString(personForProjectDto)))
-                  .andExpect(status().isOk())
-                  .andExpect(jsonPath("$", hasSize(3)));
+        mockMvc.perform(post(api + "/addPerson")
+                .content(asJsonString(personForProjectDto))
+                .contentType(APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void shouldThrowExceptionIfPersonIdIsNull() throws Exception {
+        //given
+        PersonForProjectDto personForProjectDto = new PersonForProjectDto();
+        personForProjectDto.setPersonId(1);
+        personForProjectDto.setProjectId(null);
+        //when
+        //then
+        mockMvc.perform(post(api + "/addPerson")
+                .content(asJsonString(personForProjectDto))
+                .contentType(APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
     }
 
 
+    @Test
+    public void shouldAddPersonIdToProject() throws Exception {
+        //given
+        PersonForProjectDto personForProjectDto = new PersonForProjectDto();
+        personForProjectDto.setPersonId(1);
+        personForProjectDto.setProjectId(1);
+        given(projectService.addPersonToProject(personForProjectDto)).willReturn(getPersonDtoList().get(0));
+        //when
+        //then
+        mockMvc.perform(post(api + "/addPerson")
+                .content(asJsonString(personForProjectDto))
+                .contentType(APPLICATION_JSON))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.id", is(1)));
+    }
 
 
+    // -- List<PersonDto> getPersonsWithProjectById(@PathVariable Integer projectId)---
+    @Test
+    public void shouldReturnListPersonForProject() throws Exception{
+        //given
+        given(projectService.getPersonFromProject(1)).willReturn(getPersonDtoList());
+        //when
+        //then
+        mockMvc.perform(get(api + "/persons/{projectId}", 1))
+                .andExpect(jsonPath("$", hasSize(3)));
+    }
 
 
+    // -- List<NoteDto> getNotesFromProject(@PathVariable Integer projectId) ---
+    @Test
+    public void shouldReturnListNoteWithProject() throws Exception{
+        //given
+        given(projectService.getNoteFromProject(1)).willReturn(getNoteDtoList());
+        //when
+        //then
+        mockMvc.perform(get(api + "/notes/{projectId}", 1))
+                .andExpect(jsonPath("$", hasSize(3)));
+    }
 
     private List<PersonDto> getPersonDtoList() {
         return getPersonList()
@@ -242,6 +245,7 @@ public class PersonRestControllerTest {
         person.setName("Test");
         person.setLastName("Test");
         Person person1 = new Person();
+        person1.setId(2);
         person1.setName("Test");
         person1.setLastName("Test");
         Person person2 = new Person();
@@ -282,7 +286,6 @@ public class PersonRestControllerTest {
         project1.setId(1);
         project1.setName("Projekt1");
         Project project2 = new Project();
-        project2.setId(2);
         project2.setName("Projekt2");
         Project project3 = new Project();
         project3.setId(3);
@@ -296,7 +299,6 @@ public class PersonRestControllerTest {
                 .map(projectMapper::toDto)
                 .collect(Collectors.toList());
     }
-
 
 
 }
