@@ -18,8 +18,7 @@ import com.example.kanban.model.Project;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -78,21 +77,6 @@ public class ProjectServiceImpl implements ProjectService {
 
 
     @Override
-    public PersonDto addPersonToProject(PersonForProjectDto personForProjectDto) {
-        Person person = getPerson(personForProjectDto.getPersonId());
-        Project project = getProject(personForProjectDto.getProjectId());
-
-        List<Person> personsForProject = project.getPersons();
-
-        if (personsForProject.contains(person)) {
-            throw new PersonIsAlreadyAddedToProjectException();
-        }
-        personsForProject.add(person);
-        project.setPersons(personsForProject);
-        return personMapper.toDto(person);
-    }
-
-    @Override
     public List<PersonDto> getPersonFromProject(Integer projectId) {
         return getProject(projectId)
                 .getPersons()
@@ -107,6 +91,33 @@ public class ProjectServiceImpl implements ProjectService {
                 .getNotes()
                 .stream()
                 .map(NoteMapper::toDto)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<PersonForProjectDto> addPersonListToProject(List<PersonForProjectDto> personDtoList) {
+        List<Person> persons = getPersonList(personDtoList);
+        Project project = getProject(personDtoList.get(0).getProjectId());
+
+        List<Person> personsForProject = project.getPersons();
+
+        persons.forEach(person -> {
+            if (personsForProject.contains(person)) {
+                throw new PersonIsAlreadyAddedToProjectException();
+            }
+        });
+
+        personsForProject.addAll(persons);
+        project.setPersons(personsForProject);
+        projectDao.update(project);
+
+        return personDtoList;
+    }
+
+    private List<Person> getPersonList(List<PersonForProjectDto> personDtoList) {
+        return personDtoList
+                .stream()
+                .map(p -> getPerson(p.getPersonId()))
                 .collect(Collectors.toList());
     }
 

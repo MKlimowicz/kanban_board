@@ -18,11 +18,13 @@ public class NoteMapper {
         Category category = note.getCategory();
         if (category != null) {
             dto.setCategoryId(category.getId());
+            dto.setNameCategory(category.getNameCategory());
         }
 
         Project project = note.getProject();
         if (project != null) {
             dto.setProjectId(project.getId());
+            dto.setProjectName(project.getName());
         }
 
         Person person = note.getPerson();

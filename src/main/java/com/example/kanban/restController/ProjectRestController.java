@@ -72,15 +72,14 @@ public class ProjectRestController {
     }
 
 
-    @PostMapping("/addPerson")
-    public ResponseEntity<PersonDto> addPersonForProject(@RequestBody PersonForProjectDto personForProjectDto) {
-        Integer personId = personForProjectDto.getPersonId();
-        Integer projectId = personForProjectDto.getProjectId();
 
-        checkBothId(projectId, personId, "You must provide the id of the person and project to which you want to add it");
-        PersonDto personDto = projectService.addPersonToProject(personForProjectDto);
-        return ResponseEntity.ok(personDto);
-
+    @PostMapping("/addPersons")
+    public ResponseEntity addPersonListToProject(@RequestBody List<PersonForProjectDto> personDtoList){
+        if (personDtoList.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You can't send empty list");
+        }
+        List personListSaved = projectService.addPersonListToProject(personDtoList);
+        return ResponseEntity.ok(personListSaved);
     }
 
     @GetMapping("/persons/{projectId}")
@@ -109,12 +108,4 @@ public class ProjectRestController {
         }
     }
 
-    private void checkBothId(Integer projectId, Integer personId, String message) {
-        if (projectId == null || personId == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, message
-                    + ". noteId: " + projectId
-                    + ". personId: " + personId);
-        }
-
-    }
 }

@@ -15,18 +15,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Bean;
-import org.springframework.http.MediaType;
+
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
 
 import static org.hamcrest.Matchers.*;
-import static org.mockito.Mockito.mock;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -38,6 +36,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -157,27 +156,10 @@ public class ProjectRestControllerTest {
     @Test
     public void shouldThrowExceptionIfProjectIdIsNull() throws Exception {
         //given
-        PersonForProjectDto personForProjectDto = new PersonForProjectDto();
-        personForProjectDto.setPersonId(null);
-        personForProjectDto.setProjectId(1);
         //when
         //then
-        mockMvc.perform(post(api + "/addPerson")
-                .content(asJsonString(personForProjectDto))
-                .contentType(APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    public void shouldThrowExceptionIfPersonIdIsNull() throws Exception {
-        //given
-        PersonForProjectDto personForProjectDto = new PersonForProjectDto();
-        personForProjectDto.setPersonId(1);
-        personForProjectDto.setProjectId(null);
-        //when
-        //then
-        mockMvc.perform(post(api + "/addPerson")
-                .content(asJsonString(personForProjectDto))
+        mockMvc.perform(post(api + "/addPersons")
+                .content(asJsonString(Collections.EMPTY_LIST))
                 .contentType(APPLICATION_JSON))
                 .andExpect(status().isBadRequest());
     }
@@ -189,14 +171,15 @@ public class ProjectRestControllerTest {
         PersonForProjectDto personForProjectDto = new PersonForProjectDto();
         personForProjectDto.setPersonId(1);
         personForProjectDto.setProjectId(1);
-        given(projectService.addPersonToProject(personForProjectDto)).willReturn(getPersonDtoList().get(0));
+        given(projectService
+                .addPersonListToProject(Collections.singletonList(personForProjectDto)))
+                .willReturn(Collections.singletonList(personForProjectDto));
         //when
         //then
-        mockMvc.perform(post(api + "/addPerson")
-                .content(asJsonString(personForProjectDto))
+        mockMvc.perform(post(api + "/addPersons")
+                .content(asJsonString(Collections.singletonList(personForProjectDto)))
                 .contentType(APPLICATION_JSON))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.id", is(1)));
+                    .andExpect(status().isOk());
     }
 
 

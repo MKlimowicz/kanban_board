@@ -13,7 +13,7 @@ public interface ProjectService {
     ProjectDto saveProject(ProjectDto projectDto);
     ProjectDto deleteProject(Integer projectId);
     ProjectDto getProjectById(Integer projectId);
-    PersonDto addPersonToProject(PersonForProjectDto personForProjectDto);
     List<PersonDto> getPersonFromProject(Integer projectId);
     List<NoteDto> getNoteFromProject(Integer projectId);
+    List addPersonListToProject(List<PersonForProjectDto> personDtoList);
 }

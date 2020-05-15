@@ -6,12 +6,29 @@ public class NoteDto {
 
     private Integer id;
     private Integer projectId;
+    private String projectName;
     private Integer personId;
     private String content;
     private String title;
     private Integer categoryId;
+    private String nameCategory;
 
 
+    public String getProjectName() {
+        return projectName;
+    }
+
+    public void setProjectName(String projectName) {
+        this.projectName = projectName;
+    }
+
+    public String getNameCategory() {
+        return nameCategory;
+    }
+
+    public void setNameCategory(String nameCategory) {
+        this.nameCategory = nameCategory;
+    }
 
     public Integer getPersonId() {
         return personId;
@@ -80,12 +97,17 @@ public class NoteDto {
         if (o == null || getClass() != o.getClass()) return false;
         NoteDto noteDto = (NoteDto) o;
         return Objects.equals(id, noteDto.id) &&
+                Objects.equals(projectId, noteDto.projectId) &&
+                Objects.equals(projectName, noteDto.projectName) &&
+                Objects.equals(personId, noteDto.personId) &&
                 Objects.equals(content, noteDto.content) &&
-                Objects.equals(title, noteDto.title);
+                Objects.equals(title, noteDto.title) &&
+                Objects.equals(categoryId, noteDto.categoryId) &&
+                Objects.equals(nameCategory, noteDto.nameCategory);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, content, title);
+        return Objects.hash(id, projectId, projectName, personId, content, title, categoryId, nameCategory);
     }
 }

@@ -182,7 +182,7 @@ class ProjectServiceImplTest {
         //when
         //then
         assertThrows(NotFoundPersonException.class, () -> {
-            projectServiceImpl.addPersonToProject(personForProjectDto);
+            projectServiceImpl.addPersonListToProject(Collections.singletonList(personForProjectDto));
         });
     }
 
@@ -194,7 +194,7 @@ class ProjectServiceImplTest {
         //when
         //then
         assertThrows(PersonIsAlreadyAddedToProjectException.class, () -> {
-            projectServiceImpl.addPersonToProject(personForProjectDto);
+            projectServiceImpl.addPersonListToProject(Collections.singletonList(personForProjectDto));
         });
     }
 
@@ -206,10 +206,10 @@ class ProjectServiceImplTest {
 
         given(projectDao.update(projectWithId)).willReturn(projectWithId);
         //when
-        PersonDto person = projectServiceImpl.addPersonToProject(personForProjectDto);
+        List<PersonForProjectDto> personForProjectDtos = projectServiceImpl.addPersonListToProject(Collections.singletonList(personForProjectDto));
         //then
-        assertThat(person.getId(), is(1));
-        assertThat(person.getName(), equalTo(person1.getName()));
+        assertThat(personForProjectDtos.get(0).getPersonId(), is(1));
+        assertThat(personForProjectDtos.get(0).getProjectId(), is(1));
     }
 
 

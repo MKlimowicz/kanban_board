@@ -1,7 +1,6 @@
 package com.example.kanban.dao.project;
 
 
-import com.example.kanban.model.Note;
 import com.example.kanban.model.Person;
 import com.example.kanban.model.Project;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,7 +64,18 @@ public class ProjectDaoImpl implements ProjectDao {
 
     @Override
     public Optional<Project> findByName(String name) {
-        Project project = em.find(Project.class, name);
-        return Optional.ofNullable(project);
+        String query = "SELECT p FROM Project p WHERE p.name like :name";
+
+        TypedQuery<Project> projectQry = em
+                .createQuery(query, Project.class)
+                .setParameter("name", name);
+
+        if(projectQry.getResultList().isEmpty()){
+            return Optional.empty();
+        } else {
+            return Optional.ofNullable(
+                    projectQry.getResultList().get(0)
+            );
+        }
     }
 }
